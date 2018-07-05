@@ -104,8 +104,47 @@ class App extends Component {
 export default App;
 ```
 
+## Run a Development Build of this Component
+Since this is a component, it is convenient to test it locally in an app before
+building and publishing a modified version to npm. Below are the steps to set
+this up in a development environment:
+
+Clone this repo to your local dev environment
+```console
+cd ~/Documents/code
+git clone https://github.com/outer-labs/react-forge-viewer.git
+```
+
+Install dependencies, and establish a link to our package in npm
+```console
+npm i
+npm run build
+npm link
+```
+
+Install and use `create-react-app` to set up a boilerplate app for testing the
+component (targeting node version 6.10)
+```console
+npm i -g create-react-app
+cd ~/Documents/code
+mkdir my-test-app
+cd my-test-app
+nvm use 6.10
+create-react-app .
+echo 'v6.10' > .nvmrc
+```
+
+Use the component link with the test app we just created
+```console
+npm link react-forge-viewer
+```
+
+Add the component to your `App.js` then run `npm start` (for both app and the
+viewer component in separate terminal windows).
+
 ## License
 MIT 2018
 
 ## Made by Outer Labs, Inc.
-[outerlabs.io](http://outerlabs.io)
+* Source code for this component is on [GitHub](https://github.com/outer-labs/react-forge-viewer)
+* Come find us at [outerlabs.io](http://outerlabs.io)
