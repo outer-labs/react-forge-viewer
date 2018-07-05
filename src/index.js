@@ -44,7 +44,7 @@ class ForgeViewer extends React.Component {
 
   constructor(props){
     super(props);
-    this.state = {enable:false, doc:null};
+    this.state = {urn:null, enable:false, doc:null};
     this.viewerDiv = React.createRef();
     this.viewer = null;
   }
@@ -88,7 +88,13 @@ class ForgeViewer extends React.Component {
     });
   }
 
+  clearDocument(){
+    this.setState({doc:null,urn:null});
+  }
+
   loadDocument(urn){
+    this.setState({urn});
+
     let options = {
       env: 'AutodeskProduction',
       getAccessToken: this.props.onTokenRequest
@@ -137,12 +143,16 @@ class ForgeViewer extends React.Component {
   componentDidUpdate(prevProps, prevState){
     //viewer must be both flagged for reload, and enabled to load a document
     if(!this.props.urn || this.props.urn === ''){
+      //clear out the previously loaded document
       if(prevState.doc){
-        this.setState({doc:null});
+        this.clearDocument();
       }
     }
-    else if(this.props.urn !== prevProps.urn){
-      this.loadDocument(this.props.urn);
+    else if(this.props.urn){
+      //propery value does not match state, so load a new doc
+      if(this.props.urn != prevState.urn){
+        this.loadDocument(this.props.urn);
+      }
     }
 
     if(this.props.view != prevProps.view){

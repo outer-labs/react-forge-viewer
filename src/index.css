@@ -1,7 +1,6 @@
 
 .ForgeViewer{
-  flex:1 0 auto;
-  position:relative; /*have to reset .App positioning */
+  
 }
 
 .ForgeViewer .scrim{

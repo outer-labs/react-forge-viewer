@@ -592,7 +592,7 @@ var ForgeViewer = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (ForgeViewer.__proto__ || Object.getPrototypeOf(ForgeViewer)).call(this, props));
 
-    _this.state = { enable: false, doc: null };
+    _this.state = { urn: null, enable: false, doc: null };
     _this.viewerDiv = _react2.default.createRef();
     _this.viewer = null;
     return _this;
@@ -637,8 +637,15 @@ var ForgeViewer = function (_React$Component) {
       });
     }
   }, {
+    key: 'clearDocument',
+    value: function clearDocument() {
+      this.setState({ doc: null, urn: null });
+    }
+  }, {
     key: 'loadDocument',
     value: function loadDocument(urn) {
+      this.setState({ urn: urn });
+
       var options = {
         env: 'AutodeskProduction',
         getAccessToken: this.props.onTokenRequest
@@ -682,11 +689,15 @@ var ForgeViewer = function (_React$Component) {
     value: function componentDidUpdate(prevProps, prevState) {
       //viewer must be both flagged for reload, and enabled to load a document
       if (!this.props.urn || this.props.urn === '') {
+        //clear out the previously loaded document
         if (prevState.doc) {
-          this.setState({ doc: null });
+          this.clearDocument();
         }
-      } else if (this.props.urn !== prevProps.urn) {
-        this.loadDocument(this.props.urn);
+      } else if (this.props.urn) {
+        //propery value does not match state, so load a new doc
+        if (this.props.urn != prevState.urn) {
+          this.loadDocument(this.props.urn);
+        }
       }
 
       if (this.props.view != prevProps.view) {
@@ -773,7 +784,7 @@ exports = module.exports = __webpack_require__(7)(false);
 
 
 // module
-exports.push([module.i, "\n.ForgeViewer{\n  flex:1 0 auto;\n  position:relative; /*have to reset .App positioning */\n}\n\n.ForgeViewer .scrim{\n  position:absolute;\n  width: 100%;\n  height:100%;\n  z-index: 1000;\n  background-color:#ededed;\n  color: #95a5a6;\n  display:flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.ForgeViewer .scrim .message{\n  display:flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.ForgeViewer .scrim .message svg{\n  margin-bottom:10px;\n  width:50px;\n  height:50px;\n}\n", ""]);
+exports.push([module.i, "\n.ForgeViewer{\n  \n}\n\n.ForgeViewer .scrim{\n  position:absolute;\n  width: 100%;\n  height:100%;\n  z-index: 1000;\n  background-color:#ededed;\n  color: #95a5a6;\n  display:flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.ForgeViewer .scrim .message{\n  display:flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.ForgeViewer .scrim .message svg{\n  margin-bottom:10px;\n  width:50px;\n  height:50px;\n}\n", ""]);
 
 // exports
 

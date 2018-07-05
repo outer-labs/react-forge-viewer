@@ -105,6 +105,23 @@ class App extends Component {
 export default App;
 ```
 
+## Styling the Component
+The ForgeViewer component will need to be assigned width and height properties,
+either directly, or via layout manager (like flex layout). 
+
+```css
+.App {
+  width:100%;
+  height:100%;
+  position:fixed;
+}
+
+.ForgeViewer{
+  width:500px;
+  height:500px;
+}
+```
+
 ## Run a Development Build of this Component
 Since this is a component, it is convenient to test it locally in an app before
 building and publishing a modified version to npm. Below are the steps to set
