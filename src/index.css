@@ -9,7 +9,8 @@
   width: 100%;
   height:100%;
   z-index: 1000;
-  background-color: grey;
+  background-color:#ededed;
+  color: #95a5a6;
   display:flex;
   align-items: center;
   justify-content: center;
@@ -25,5 +26,4 @@
   margin-bottom:10px;
   width:50px;
   height:50px;
-  color:blue;
 }

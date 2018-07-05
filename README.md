@@ -88,6 +88,7 @@ class App extends Component {
     return (
       <div className="App">
         <ForgeViewer
+          version="5.0"
           urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
           view={this.state.view}
           onTokenRequest={this.handleTokenRequested.bind(this)}
