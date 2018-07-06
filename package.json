@@ -1,10 +1,19 @@
 {
   "name": "react-forge-viewer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A component wrapper to quickly add the Forge model viewer in your React apps",
   "main": "build/index.js",
   "license": "MIT",
-  "keywords": ["Forge", "Viewer", "3D", "Revit", "Navisworks", "AutoCAD", "CAD", "React"],
+  "keywords": [
+    "Forge",
+    "Viewer",
+    "3D",
+    "Revit",
+    "Navisworks",
+    "AutoCAD",
+    "CAD",
+    "React"
+  ],
   "homepage": "https://github.com/outer-labs/react-forge-viewer",
   "peerDependencies": {
     "react": "^16.4.1"
