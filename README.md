@@ -1,17 +1,13 @@
 # React Forge Viewer Component
 
 ## Motivation
-Autodesk provides a web-based viewer that can load and display a wide range of
-2D and 3D models (Revit, Navisworks, AutoCAD, etc.).
+Autodesk provides a web-based viewer that can load and display a wide range of 2D and 3D models (Revit, Navisworks, AutoCAD, etc.).
 
-The `ForgeViewer` component in this package makes it easy to include and
-interact with the viewer in your React apps by wrapping the standard Autodesk
-libraries in a React-friendly interface.
+The `ForgeViewer` component in this package makes it easy to include and interact with the viewer in your React apps by wrapping the standard Autodesk libraries in a React-friendly interface.
 
-Note that this component is optimized for what seems to be the most common case
--- one viewer per page, and a single document per viewer. It also assumes you
-will take care of generating a valid oAuth token to access Forge, and generate a
-URN for you document (via Model Derivative API).
+Note that this component is not authored by Autodesk.
+
+We've optimized for what seems to be the most common case -- one viewer per page, and a single document per viewer. It also assumes you will take care of generating a valid oAuth token to access Forge, and generate a URN for you document (via Model Derivative API).
 
 ## Supported React Versions
 This package requires React 16.4.1 and higher.
@@ -111,8 +107,7 @@ export default App;
 ```
 
 ## Styling the Component
-The ForgeViewer component will need to be assigned width and height properties,
-either directly, or via layout manager (like flex layout).
+The ForgeViewer component will need to be assigned width and height properties, either directly, or via layout manager (like flex layout).
 
 ```css
 .App {
@@ -128,9 +123,7 @@ either directly, or via layout manager (like flex layout).
 ```
 
 ## Run a Development Build of this Component
-Since this is a component, it is convenient to test it locally in an app before
-building and publishing a modified version to npm. Below are the steps to set
-this up in a development environment:
+Since this is a component, it is convenient to test it locally in an app before building and publishing a modified version to npm. Below are the steps to set this up in a development environment:
 
 Clone this repo to your local dev environment
 ```bash
@@ -145,8 +138,7 @@ npm run build
 npm link
 ```
 
-Install and use `create-react-app` to set up a boilerplate app for testing the
-component (targeting node version 6.10)
+Install and use `create-react-app` to set up a boilerplate app for testing the component (targeting node version 6.10)
 ```bash
 npm i -g create-react-app
 cd ~/Documents/code
@@ -162,12 +154,12 @@ Use the component link with the test app we just created
 npm link react-forge-viewer
 ```
 
-Add the component to your `App.js` then run `npm start` (for both `my-test-app`
-and `react-forge-viewer` in separate terminal windows/tabs).
+Add the component to your `App.js` then run `npm start` (for both `my-test-app` and `react-forge-viewer` in separate terminal windows/tabs).
 
 ## License
 MIT
 
 ## Made by Outer Labs, Inc.
+* Contact info@outerlabs.io
 * Source code for this component is on [GitHub](https://github.com/outer-labs/react-forge-viewer)
-* Come find us at [outerlabs.io](http://outerlabs.io)
+* More at [outerlabs.io](http://outerlabs.io)
