@@ -36,6 +36,10 @@ class App extends Component {
     }
   }
 
+  handleViewerError(error){
+    console.log('Error loading viewer.');
+  }
+
   /* after the viewer loads a document, we need to select which viewable to
   display in our component */
   handleDocumentLoaded(doc, viewables){
@@ -49,7 +53,7 @@ class App extends Component {
   }
 
   handleDocumentError(viewer, error){
-    console.log('error loading a document');
+    console.log('Error loading a document');
   }
 
   handleModelLoaded(viewer, model){
@@ -91,6 +95,7 @@ class App extends Component {
           version="5.0"
           urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
           view={this.state.view}
+          onViewerError={this.handleViewerError.bind(this)}
           onTokenRequest={this.handleTokenRequested.bind(this)}
           onDocumentLoad={this.handleDocumentLoaded.bind(this)}
           onDocumentError={this.handleDocumentError.bind(this)}
@@ -107,7 +112,7 @@ export default App;
 
 ## Styling the Component
 The ForgeViewer component will need to be assigned width and height properties,
-either directly, or via layout manager (like flex layout). 
+either directly, or via layout manager (like flex layout).
 
 ```css
 .App {
@@ -161,7 +166,7 @@ Add the component to your `App.js` then run `npm start` (for both `my-test-app`
 and `react-forge-viewer` in separate terminal windows/tabs).
 
 ## License
-MIT 2018
+MIT
 
 ## Made by Outer Labs, Inc.
 * Source code for this component is on [GitHub](https://github.com/outer-labs/react-forge-viewer)

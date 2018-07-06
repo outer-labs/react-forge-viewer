@@ -592,7 +592,7 @@ var ForgeViewer = function (_React$Component) {
 
     var _this = _possibleConstructorReturn(this, (ForgeViewer.__proto__ || Object.getPrototypeOf(ForgeViewer)).call(this, props));
 
-    _this.state = { urn: null, enable: false, doc: null };
+    _this.state = { enable: false, doc: null, error: false };
     _this.viewerDiv = _react2.default.createRef();
     _this.viewer = null;
     return _this;
@@ -612,6 +612,8 @@ var ForgeViewer = function (_React$Component) {
   }, {
     key: 'handleLoadDocumentError',
     value: function handleLoadDocumentError(errorCode) {
+      this.setState({ error: true });
+
       console.error('Error loading Forge document - errorCode:' + errorCode);
       if (this.props.onDocumentError) this.props.onDocumentError(errorCode);
     }
@@ -625,63 +627,88 @@ var ForgeViewer = function (_React$Component) {
   }, {
     key: 'handleLoadModelError',
     value: function handleLoadModelError(errorCode) {
+      this.setState({ error: true });
+
       console.error('Error loading Forge model - errorCode:' + errorCode);
       if (this.props.onModelError) this.props.onModelError(errorCode);
+    }
+  }, {
+    key: 'handleViewerError',
+    value: function handleViewerError(errorCode) {
+      this.setState({ error: true });
+
+      console.error('Error loading Forge Viewer. - errorCode:', errorCode);
+      if (this.props.onViewerError) this.props.onViewerError(errorCode);
     }
   }, {
     key: 'handleScriptLoad',
     value: function handleScriptLoad() {
       console.log('Autodesk scripts have finished loading.');
-      this.setState({
-        enable: true
-      });
+
+      //if property was set before loading, we cannot rely on component update
+      if (this.props.urn) this.setCurrentDocument(this.props.urn);
+
+      this.setState({ enable: true });
+    }
+  }, {
+    key: 'clearErrors',
+    value: function clearErrors() {
+      this.setState({ error: false });
     }
   }, {
     key: 'clearDocument',
     value: function clearDocument() {
-      this.setState({ doc: null, urn: null });
+      this.setState({ doc: null });
+    }
+  }, {
+    key: 'handleViewerInit',
+    value: function handleViewerInit(urn) {
+      console.log('Forge Viewer successfully initialized.');
+
+      var container = this.viewerDiv.current;
+
+      // Create Viewer instance and load model.
+      this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+
+      console.log('Starting the Forge Viewer...');
+      var errorCode = this.viewer.start();
+
+      // Check for initialization errors, and let parent know of failure
+      if (!errorCode) this.loadDocument(urn);else {
+        console.error('Error starting Forge Viewer - code:', errorCode);
+        this.handleViewerError(errorCode);
+      }
     }
   }, {
     key: 'loadDocument',
     value: function loadDocument(urn) {
-      this.setState({ urn: urn });
-
-      var options = {
-        env: 'AutodeskProduction',
-        getAccessToken: this.props.onTokenRequest
-      };
-
       var documentId = 'urn:' + urn;
       var successHandler = this.handleLoadDocumentSuccess.bind(this);
       var errorHandler = this.handleLoadDocumentError.bind(this);
-      var container = this.viewerDiv.current;
-      var component = this;
 
-      if (!component.viewer) {
+      console.log('Forge Viewer is loading document:', documentId);
+      Autodesk.Viewing.Document.load(documentId, successHandler, errorHandler);
+    }
+  }, {
+    key: 'setCurrentDocument',
+    value: function setCurrentDocument(urn) {
+      console.log("Setting the current viewer document to: ", urn);
+
+      //make sure all previous errors are cleared before loading begins
+      this.clearErrors();
+
+      if (!this.viewer) {
         console.log('Initializing Forge Viewer...');
 
-        Autodesk.Viewing.Initializer(options, function onInitialized() {
+        var options = {
+          env: 'AutodeskProduction',
+          getAccessToken: this.props.onTokenRequest
+        };
 
-          console.log('Forge Viewer successfully initialized.');
-
-          // Create Viewer instance and load model.
-          component.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
-
-          console.log('Starting the Forge Viewer...');
-          var errorCode = component.viewer.start();
-
-          // Check for initialization errors, and let parent know of failure
-          if (errorCode) {
-            console.error('Error starting Forge Viewer - code:', errorCode);
-            component.dispatchError(errorCode);
-          } else {
-            console.log('Forge Viewer is loading document:', documentId);
-            Autodesk.Viewing.Document.load(documentId, successHandler, errorHandler);
-          }
-        });
+        Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this, urn));
       } else {
-        console.log('Forge Viewer is loading document:', documentId);
-        Autodesk.Viewing.Document.load(documentId, successHandler, errorHandler);
+        //already initialized. skip ahead to loading the doc
+        this.loadDocument(urn);
       }
     }
   }, {
@@ -690,14 +717,10 @@ var ForgeViewer = function (_React$Component) {
       //viewer must be both flagged for reload, and enabled to load a document
       if (!this.props.urn || this.props.urn === '') {
         //clear out the previously loaded document
-        if (prevState.doc) {
-          this.clearDocument();
-        }
-      } else if (this.props.urn) {
-        //propery value does not match state, so load a new doc
-        if (this.props.urn != prevState.urn) {
-          this.loadDocument(this.props.urn);
-        }
+        if (prevState.doc) this.clearDocument();
+      } else if (this.props.urn != prevProps.urn) {
+        //document property has changed to a non-empty value
+        this.setCurrentDocument(this.props.urn);
       }
 
       if (this.props.view != prevProps.view) {
@@ -732,7 +755,9 @@ var ForgeViewer = function (_React$Component) {
         _react2.default.createElement('div', { ref: this.viewerDiv }),
         _react2.default.createElement('link', { rel: 'stylesheet', type: 'text/css', href: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v' + version }),
         _react2.default.createElement(_reactLoadScript2.default, { url: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v' + version,
-          onLoad: this.handleScriptLoad.bind(this) }),
+          onLoad: this.handleScriptLoad.bind(this),
+          onError: this.handleViewerError.bind(this)
+        }),
         !this.state.doc ? _react2.default.createElement(
           'div',
           { className: 'scrim' },
@@ -745,6 +770,26 @@ var ForgeViewer = function (_React$Component) {
               _react2.default.createElement('path', { d: 'M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z' }),
               _react2.default.createElement('polyline', { points: '2.32 6.16 12 11 21.68 6.16' }),
               _react2.default.createElement('line', { x1: '12', y1: '22.76', x2: '12', y2: '11' })
+            )
+          )
+        ) : null,
+        this.state.error ? _react2.default.createElement(
+          'div',
+          { className: 'scrim' },
+          _react2.default.createElement(
+            'div',
+            { className: 'message' },
+            _react2.default.createElement(
+              'svg',
+              { xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
+              _react2.default.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+              _react2.default.createElement('line', { x1: '12', y1: '8', x2: '12', y2: '12' }),
+              _react2.default.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '16' })
+            ),
+            _react2.default.createElement(
+              'div',
+              null,
+              'Viewer Error'
             )
           )
         ) : null,
