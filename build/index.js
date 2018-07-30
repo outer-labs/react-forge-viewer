@@ -523,7 +523,7 @@ if(false) {
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+	value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -546,276 +546,322 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var FORGE_VIEWER_ERROR = {
-  /** An unknown failure has occurred. */
-  UNKNOWN_FAILURE: 1,
-
-  /** Bad data (corrupted or malformed) was encountered. */
-  BAD_DATA: 2,
-
-  /** A network failure was encountered. */
-  NETWORK_FAILURE: 3,
-
-  /** Access was denied to a network resource (HTTP 403) */
-  NETWORK_ACCESS_DENIED: 4,
-
-  /** A network resource could not be found (HTTP 404) */
-  NETWORK_FILE_NOT_FOUND: 5,
-
-  /** A server error was returned when accessing a network resource (HTTP 5xx) */
-  NETWORK_SERVER_ERROR: 6,
-
-  /** An unhandled response code was returned when accessing a network resource (HTTP 'everything else') */
-  NETWORK_UNHANDLED_RESPONSE_CODE: 7,
-
-  /** Browser error: webGL is not supported by the current browser */
-  BROWSER_WEBGL_NOT_SUPPORTED: 8,
-
-  /** There is nothing viewable in the fetched document */
-  BAD_DATA_NO_VIEWABLE_CONTENT: 9,
-
-  /** Browser error: webGL is supported, but not enabled */
-  BROWSER_WEBGL_DISABLED: 10,
-
-  /** There is no geomtry in loaded model */
-  BAD_DATA_MODEL_IS_EMPTY: 11,
-
-  /** Collaboration server error */
-  RTC_ERROR: 12
-};
-
 var ForgeViewer = function (_React$Component) {
-  _inherits(ForgeViewer, _React$Component);
+	_inherits(ForgeViewer, _React$Component);
 
-  function ForgeViewer(props) {
-    _classCallCheck(this, ForgeViewer);
+	function ForgeViewer(props) {
+		_classCallCheck(this, ForgeViewer);
 
-    var _this = _possibleConstructorReturn(this, (ForgeViewer.__proto__ || Object.getPrototypeOf(ForgeViewer)).call(this, props));
+		var _this = _possibleConstructorReturn(this, (ForgeViewer.__proto__ || Object.getPrototypeOf(ForgeViewer)).call(this, props));
 
-    _this.state = { enable: false, doc: null, error: false };
-    _this.viewerDiv = _react2.default.createRef();
-    _this.viewer = null;
-    return _this;
-  }
+		_this.docs = [];
+		_this.views = {};
+		_this.state = { enable: false, error: false, empty: true };
+		_this.viewerDiv = _react2.default.createRef();
+		_this.viewer = null;
 
-  _createClass(ForgeViewer, [{
-    key: 'handleLoadDocumentSuccess',
-    value: function handleLoadDocumentSuccess(doc) {
-      console.log("Forge viewer has successfully loaded a document:", doc);
-      this.setState({ doc: doc });
+		//if urn already given when component is created
+		if (typeof props.urn != 'undefined' && props.urn != '') _this.docs.push(props.urn);
+		return _this;
+	}
 
-      // A document contains references to 3D and 2D viewables.
-      var viewables = Autodesk.Viewing.Document.getSubItemsWithProperties(doc.getRootItem(), { 'type': 'geometry' }, true);
+	_createClass(ForgeViewer, [{
+		key: 'handleLoadModelSuccess',
+		value: function handleLoadModelSuccess(model) {
+			console.log('Model successfully loaded from Forge.', model);
 
-      if (this.props.onDocumentLoad) this.props.onDocumentLoad(doc, viewables);
-    }
-  }, {
-    key: 'handleLoadDocumentError',
-    value: function handleLoadDocumentError(errorCode) {
-      this.setState({ error: true });
+			if (this.props.onModelLoad) this.props.onModelLoad(this.viewer, model);
+		}
+	}, {
+		key: 'handleLoadModelError',
+		value: function handleLoadModelError(errorCode) {
+			this.setState({ error: true });
 
-      console.error('Error loading Forge document - errorCode:' + errorCode);
-      if (this.props.onDocumentError) this.props.onDocumentError(errorCode);
-    }
-  }, {
-    key: 'handleLoadModelSuccess',
-    value: function handleLoadModelSuccess(model) {
-      console.log('Model successfully loaded from Forge.', model);
+			console.error('Error loading Forge model - errorCode:' + errorCode);
+			if (this.props.onModelError) this.props.onModelError(errorCode);
+		}
+	}, {
+		key: 'handleViewerError',
+		value: function handleViewerError(errorCode) {
+			this.setState({ error: true });
 
-      if (this.props.onModelLoad) this.props.onModelLoad(this.viewer, model);
-    }
-  }, {
-    key: 'handleLoadModelError',
-    value: function handleLoadModelError(errorCode) {
-      this.setState({ error: true });
+			console.error('Error loading Forge Viewer. - errorCode:', errorCode);
+			if (this.props.onViewerError) this.props.onViewerError(errorCode);
+		}
+	}, {
+		key: 'handleScriptLoad',
+		value: function handleScriptLoad() {
+			console.log('Autodesk scripts have finished loading.');
 
-      console.error('Error loading Forge model - errorCode:' + errorCode);
-      if (this.props.onModelError) this.props.onModelError(errorCode);
-    }
-  }, {
-    key: 'handleViewerError',
-    value: function handleViewerError(errorCode) {
-      this.setState({ error: true });
+			var options = {
+				env: 'AutodeskProduction', getAccessToken: this.props.onTokenRequest
+			};
 
-      console.error('Error loading Forge Viewer. - errorCode:', errorCode);
-      if (this.props.onViewerError) this.props.onViewerError(errorCode);
-    }
-  }, {
-    key: 'handleScriptLoad',
-    value: function handleScriptLoad() {
-      console.log('Autodesk scripts have finished loading.');
+			Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this));
+		}
+	}, {
+		key: 'handleViewerInit',
+		value: function handleViewerInit() {
+			console.log('Forge Viewer has finished initializing.');
 
-      //if property was set before loading, we cannot rely on component update
-      if (this.props.urn) this.setCurrentDocument(this.props.urn);
+			var container = this.viewerDiv.current;
 
-      this.setState({ enable: true });
-    }
-  }, {
-    key: 'clearErrors',
-    value: function clearErrors() {
-      this.setState({ error: false });
-    }
-  }, {
-    key: 'clearDocument',
-    value: function clearDocument() {
-      this.setState({ doc: null });
-    }
-  }, {
-    key: 'handleViewerInit',
-    value: function handleViewerInit(urn) {
-      console.log('Forge Viewer successfully initialized.');
+			// Create Viewer instance so we can load models.
+			this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
 
-      var container = this.viewerDiv.current;
+			console.log('Starting the Forge Viewer...');
+			var errorCode = this.viewer.start();
+			if (!errorCode) {
+				console.log('Forge Viewer has successfully started.');
+				this.setState({ enable: true });
+				this.reviewDocuments();
+			} else {
+				console.error('Error starting Forge Viewer - code:', errorCode);
+				this.handleViewerError(errorCode);
+			}
+		}
+	}, {
+		key: 'handleLoadDocumentSuccess',
+		value: function handleLoadDocumentSuccess(doc) {
+			console.log("Forge viewer has successfully loaded document:", doc);
 
-      // Create Viewer instance and load model.
-      this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+			var views = Autodesk.Viewing.Document.getSubItemsWithProperties(doc.getRootItem(), { 'type': 'geometry' }, true);
 
-      console.log('Starting the Forge Viewer...');
-      var errorCode = this.viewer.start();
+			//augment viewables with the doc they came from
+			views.forEach(function (viewable) {
+				viewable.doc = doc;
+			});
 
-      // Check for initialization errors, and let parent know of failure
-      if (!errorCode) this.loadDocument(urn);else {
-        console.error('Error starting Forge Viewer - code:', errorCode);
-        this.handleViewerError(errorCode);
-      }
-    }
-  }, {
-    key: 'loadDocument',
-    value: function loadDocument(urn) {
-      var documentId = 'urn:' + urn;
-      var successHandler = this.handleLoadDocumentSuccess.bind(this);
-      var errorHandler = this.handleLoadDocumentError.bind(this);
+			//raise an event so caller can select a viewable to display
+			if (this.props.onDocumentLoad) this.props.onDocumentLoad(doc, views);
+		}
+	}, {
+		key: 'handleLoadDocumentError',
+		value: function handleLoadDocumentError(errorCode) {
+			this.setState({ error: true });
 
-      console.log('Forge Viewer is loading document:', documentId);
-      Autodesk.Viewing.Document.load(documentId, successHandler, errorHandler);
-    }
-  }, {
-    key: 'setCurrentDocument',
-    value: function setCurrentDocument(urn) {
-      console.log("Setting the current viewer document to: ", urn);
+			console.error('Error loading Forge document - errorCode:' + errorCode);
+			if (this.props.onDocumentError) this.props.onDocumentError(errorCode);
+		}
+	}, {
+		key: 'clearErrors',
+		value: function clearErrors() {
+			this.setState({ error: false });
+		}
+	}, {
+		key: 'clearViews',
+		value: function clearViews() {
+			console.log('clearing all views.');
+			this.views = {};
+			if (this.viewer) {
+				//restart viewer, for lack of ability to unload models
+				this.viewer.tearDown();
+				this.viewer.start();
+			}
+		}
+	}, {
+		key: 'reviewDocuments',
+		value: function reviewDocuments() {
+			var _this2 = this;
 
-      //make sure all previous errors are cleared before loading begins
-      this.clearErrors();
+			if (this.viewer) {
+				this.clearErrors();
+				console.log('reviewing documents...');
+				//let keys = Object.keys(this.docs);
+				this.setState({ empty: this.docs.length == 0 });
+				this.docs.forEach(function (urn) {
+					_this2.loadDocument(urn);
+				});
+			}
+		}
+	}, {
+		key: 'loadDocument',
+		value: function loadDocument(urn) {
+			console.log('Forge Viewer is loading document:', urn);
 
-      if (!this.viewer) {
-        console.log('Initializing Forge Viewer...');
+			var documentId = 'urn:' + urn;
+			var successHandler = this.handleLoadDocumentSuccess.bind(this);
+			var errorHandler = this.handleLoadDocumentError.bind(this);
 
-        var options = {
-          env: 'AutodeskProduction',
-          getAccessToken: this.props.onTokenRequest
-        };
+			Autodesk.Viewing.Document.load(documentId, successHandler, errorHandler);
+		}
+	}, {
+		key: 'loadView',
+		value: function loadView(view) {
+			console.log('loading view:', view.viewableID);
+			this.views[view.viewableID] = view;
 
-        Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this, urn));
-      } else {
-        //already initialized. skip ahead to loading the doc
-        this.loadDocument(urn);
-      }
-    }
-  }, {
-    key: 'componentDidUpdate',
-    value: function componentDidUpdate(prevProps, prevState) {
-      //viewer must be both flagged for reload, and enabled to load a document
-      if (!this.props.urn || this.props.urn === '') {
-        //clear out the previously loaded document
-        if (prevState.doc) this.clearDocument();
-      } else if (this.props.urn != prevProps.urn) {
-        //document property has changed to a non-empty value
-        this.setCurrentDocument(this.props.urn);
-      }
+			var svfUrl = view.doc.getViewablePath(view);
+			var successHandler = this.handleLoadModelSuccess.bind(this);
+			var errorHandler = this.handleLoadModelError.bind(this);
+			var modelOptions = {
+				sharedPropertyDbPath: view.doc.getPropertyDbPath()
+			};
 
-      if (this.props.view != prevProps.view) {
-        if (!this.state.doc) {
-          console.error('Forge Viewer cannot display a view without loading a doc.');
-        } else {
-          var view = this.props.view;
-          var svfUrl = this.state.doc.getViewablePath(view);
-          var successHandler = this.handleLoadModelSuccess.bind(this);
-          var errorHandler = this.handleLoadModelError.bind(this);
-          var modelOptions = {
-            sharedPropertyDbPath: this.state.doc.getPropertyDbPath()
-          };
+			//load the specified model
+			this.viewer.loadModel(svfUrl, modelOptions, successHandler, errorHandler);
+		}
+	}, {
+		key: 'isArrayDifferent',
+		value: function isArrayDifferent(current, next) {
+			if (current == null && next == null) return false;else if (current == null || next == null) return true;else if (current.length != next.length) return true;
 
-          //re-initialize viewer, otherwise it will combine models
-          this.viewer.tearDown();
-          this.viewer.start();
+			for (var i = 0; i < current.length; i++) {
+				if (current[i] != next[i]) return true;
+			}return false;
+		}
+	}, {
+		key: 'shouldComponentUpdateURN',
+		value: function shouldComponentUpdateURN(nextProps, nextState) {
+			//console.log('props urn:', this.props.urn, ' next props urn:', nextProps.urn)
+			//new urn is null, empty or empty array
+			if (!nextProps.urn || nextProps.urn === '' || typeof nextProps.urn === 'undefined' || Array.isArray(nextProps.urn) && nextProps.urn.length == 0) {
+				//clear out views if any document was previously loaded
+				if (this.docs.length > 0) {
+					this.setDocuments([]);
+				}
+			} else if (Array.isArray(nextProps.urn)) {
+				//always have to check array because equivalence is per element
+				if (this.isArrayDifferent(this.props.urn, nextProps.urn)) {
+					this.setDocuments(nextProps.urn);
+				}
+			} else if (nextProps.urn != this.props.urn) {
+				this.setDocuments([nextProps.urn]);
+			}
+		}
+	}, {
+		key: 'shouldComponentUpdateView',
+		value: function shouldComponentUpdateView(nextProps, nextState) {
+			//the view property is empty, undefined, or empty array
+			if (!nextProps.view || typeof nextProps.view === 'undefined' || Array.isArray(nextProps.view) && nextProps.view.length == 0) {
+				if (Object.keys(this.views).length > 0) this.clearViews();
+			} else if (Array.isArray(nextProps.view)) {
+				if (this.isArrayDifferent(this.props.view, nextProps.view)) {
+					this.setViews(nextProps.view);
+				}
+			} else if (this.props.view != nextProps.view) {
+				this.setViews([nextProps.view]);
+			}
+		}
+	}, {
+		key: 'shouldComponentUpdate',
+		value: function shouldComponentUpdate(nextProps, nextState) {
+			this.shouldComponentUpdateURN(nextProps, nextState);
+			this.shouldComponentUpdateView(nextProps, nextState);
+			return true;
+		}
+	}, {
+		key: 'setDocuments',
+		value: function setDocuments(list) {
+			this.docs = list;
+			this.clearViews();
+			this.reviewDocuments(); //defer loading until viewer ready
+		}
+	}, {
+		key: 'setViews',
+		value: function setViews(list) {
+			var _this3 = this;
 
-          //load the specified model
-          this.viewer.loadModel(svfUrl, modelOptions, successHandler, errorHandler);
-        }
-      }
-    }
-  }, {
-    key: 'render',
-    value: function render() {
-      var version = this.props.version ? this.props.version : "5.0";
+			//check to see if views were added or removed from existing list
+			var existing = Object.assign({}, this.views);
+			var incremental = [];
+			list.forEach(function (view) {
+				if (existing.hasOwnProperty(view.viewableID))
+					//the view was previously in the list
+					delete existing[view.viewableID];else {
+					//the view is newly added to the list
+					incremental.push(view);
+				}
+			});
 
-      return _react2.default.createElement(
-        'div',
-        { className: 'ForgeViewer' },
-        _react2.default.createElement('div', { ref: this.viewerDiv }),
-        _react2.default.createElement('link', { rel: 'stylesheet', type: 'text/css', href: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v' + version }),
-        _react2.default.createElement(_reactLoadScript2.default, { url: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v' + version,
-          onLoad: this.handleScriptLoad.bind(this),
-          onError: this.handleViewerError.bind(this)
-        }),
-        !this.state.doc ? _react2.default.createElement(
-          'div',
-          { className: 'scrim' },
-          _react2.default.createElement(
-            'div',
-            { className: 'message' },
-            _react2.default.createElement(
-              'svg',
-              { xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
-              _react2.default.createElement('path', { d: 'M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z' }),
-              _react2.default.createElement('polyline', { points: '2.32 6.16 12 11 21.68 6.16' }),
-              _react2.default.createElement('line', { x1: '12', y1: '22.76', x2: '12', y2: '11' })
-            )
-          )
-        ) : null,
-        this.state.error ? _react2.default.createElement(
-          'div',
-          { className: 'scrim' },
-          _react2.default.createElement(
-            'div',
-            { className: 'message' },
-            _react2.default.createElement(
-              'svg',
-              { xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
-              _react2.default.createElement('circle', { cx: '12', cy: '12', r: '10' }),
-              _react2.default.createElement('line', { x1: '12', y1: '8', x2: '12', y2: '12' }),
-              _react2.default.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '16' })
-            ),
-            _react2.default.createElement(
-              'div',
-              null,
-              'Viewer Error'
-            )
-          )
-        ) : null,
-        !this.state.enable ? _react2.default.createElement(
-          'div',
-          { className: 'scrim' },
-          _react2.default.createElement(
-            'div',
-            { className: 'message' },
-            _react2.default.createElement(
-              'svg',
-              { xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
-              _react2.default.createElement('polygon', { points: '13 2 3 14 12 14 11 22 21 10 12 10 13 2' })
-            ),
-            _react2.default.createElement(
-              'div',
-              null,
-              'Starting Viewer...'
-            )
-          )
-        ) : null
-      );
-    }
-  }]);
+			//anything left in old's keys should be unloaded
+			var keys = Object.keys(existing);
+			if (keys.length > 0) {
+				//views were removed, so restart viewer for lack of 'unload'
+				this.viewer.tearDown();
+				this.viewer.start();
+				list.forEach(function (view) {
+					_this3.loadView(view);
+				});
+			} else {
+				//load views incrementally rather than a complete teardown
+				incremental.forEach(function (view) {
+					_this3.loadView(view);
+				});
+			}
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			var version = this.props.version ? this.props.version : "5.0";
 
-  return ForgeViewer;
+			return _react2.default.createElement(
+				'div',
+				{ className: 'ForgeViewer' },
+				_react2.default.createElement('div', { ref: this.viewerDiv }),
+				_react2.default.createElement('link', { rel: 'stylesheet', type: 'text/css', href: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v' + version }),
+				_react2.default.createElement(_reactLoadScript2.default, { url: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v' + version,
+					onLoad: this.handleScriptLoad.bind(this),
+					onError: this.handleViewerError.bind(this)
+				}),
+				this.state.empty ? _react2.default.createElement(
+					'div',
+					{ className: 'scrim' },
+					_react2.default.createElement(
+						'div',
+						{ className: 'message' },
+						_react2.default.createElement(
+							'svg',
+							{ xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
+							_react2.default.createElement('path', { d: 'M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z' }),
+							_react2.default.createElement('polyline', { points: '2.32 6.16 12 11 21.68 6.16' }),
+							_react2.default.createElement('line', { x1: '12', y1: '22.76', x2: '12', y2: '11' })
+						)
+					)
+				) : null,
+				this.state.error ? _react2.default.createElement(
+					'div',
+					{ className: 'scrim' },
+					_react2.default.createElement(
+						'div',
+						{ className: 'message' },
+						_react2.default.createElement(
+							'svg',
+							{ xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
+							_react2.default.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+							_react2.default.createElement('line', { x1: '12', y1: '8', x2: '12', y2: '12' }),
+							_react2.default.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '16' })
+						),
+						_react2.default.createElement(
+							'div',
+							null,
+							'Viewer Error'
+						)
+					)
+				) : null,
+				!this.state.enable ? _react2.default.createElement(
+					'div',
+					{ className: 'scrim' },
+					_react2.default.createElement(
+						'div',
+						{ className: 'message' },
+						_react2.default.createElement(
+							'svg',
+							{ xmlns: 'http://www.w3.org/2000/svg', width: '24', height: '24', viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: '2', strokeLinecap: 'round', strokeLinejoin: 'round' },
+							_react2.default.createElement('polygon', { points: '13 2 3 14 12 14 11 22 21 10 12 10 13 2' })
+						),
+						_react2.default.createElement(
+							'div',
+							null,
+							'Starting Viewer...'
+						)
+					)
+				) : null
+			);
+		}
+	}]);
+
+	return ForgeViewer;
 }(_react2.default.Component);
 
 exports.default = ForgeViewer;

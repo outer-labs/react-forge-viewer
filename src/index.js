@@ -2,72 +2,19 @@ import React from 'react';
 import Script from 'react-load-script'
 import './index.css';
 
-const FORGE_VIEWER_ERROR = {
-    /** An unknown failure has occurred. */
-    UNKNOWN_FAILURE: 1,
-
-    /** Bad data (corrupted or malformed) was encountered. */
-    BAD_DATA: 2,
-
-    /** A network failure was encountered. */
-    NETWORK_FAILURE: 3,
-
-    /** Access was denied to a network resource (HTTP 403) */
-    NETWORK_ACCESS_DENIED: 4,
-
-    /** A network resource could not be found (HTTP 404) */
-    NETWORK_FILE_NOT_FOUND: 5,
-
-    /** A server error was returned when accessing a network resource (HTTP 5xx) */
-    NETWORK_SERVER_ERROR: 6,
-
-    /** An unhandled response code was returned when accessing a network resource (HTTP 'everything else') */
-    NETWORK_UNHANDLED_RESPONSE_CODE: 7,
-
-    /** Browser error: webGL is not supported by the current browser */
-    BROWSER_WEBGL_NOT_SUPPORTED: 8,
-
-    /** There is nothing viewable in the fetched document */
-    BAD_DATA_NO_VIEWABLE_CONTENT: 9,
-
-    /** Browser error: webGL is supported, but not enabled */
-    BROWSER_WEBGL_DISABLED: 10,
-
-    /** There is no geomtry in loaded model */
-    BAD_DATA_MODEL_IS_EMPTY: 11,
-
-    /** Collaboration server error */
-    RTC_ERROR: 12
-};
-
 class ForgeViewer extends React.Component {
 
   constructor(props){
     super(props);
-    this.state = {enable:false, doc:null, error:false};
+		this.docs = [];
+		this.views = {};
+    this.state = {enable:false, error:false, empty:true};
     this.viewerDiv = React.createRef();
     this.viewer = null;
-  }
 
-  handleLoadDocumentSuccess(doc) {
-    console.log("Forge viewer has successfully loaded a document:", doc);
-    this.setState({doc});
-
-    // A document contains references to 3D and 2D viewables.
-    let viewables = Autodesk.Viewing.Document.getSubItemsWithProperties(
-      doc.getRootItem(), {'type': 'geometry'}, true
-    );
-
-    if(this.props.onDocumentLoad)
-      this.props.onDocumentLoad(doc, viewables);
-  }
-
-  handleLoadDocumentError(errorCode){
-    this.setState({error:true});
-
-    console.error('Error loading Forge document - errorCode:' + errorCode);
-    if(this.props.onDocumentError)
-      this.props.onDocumentError(errorCode);
+		//if urn already given when component is created
+		if(typeof props.urn != 'undefined' && props.urn != '')
+			this.docs.push(props.urn);
   }
 
   handleLoadModelSuccess(model){
@@ -96,111 +43,204 @@ class ForgeViewer extends React.Component {
   handleScriptLoad(){
     console.log('Autodesk scripts have finished loading.');
 
-    //if property was set before loading, we cannot rely on component update
-    if(this.props.urn)
-      this.setCurrentDocument(this.props.urn);
+		let options = {
+			env: 'AutodeskProduction', getAccessToken: this.props.onTokenRequest
+		};
 
-    this.setState({enable:true});
+		Autodesk.Viewing.Initializer(
+			options, this.handleViewerInit.bind(this));
   }
 
-  clearErrors(){
-    this.setState({error:false});
-  }
-
-  clearDocument(){
-    this.setState({doc:null});
-  }
-
-  handleViewerInit(urn){
-    console.log('Forge Viewer successfully initialized.');
+  handleViewerInit(){
+    console.log('Forge Viewer has finished initializing.');
 
     let container = this.viewerDiv.current;
 
-    // Create Viewer instance and load model.
+    // Create Viewer instance so we can load models.
     this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
 
     console.log('Starting the Forge Viewer...');
     var errorCode = this.viewer.start();
-
-    // Check for initialization errors, and let parent know of failure
-    if (!errorCode)
-      this.loadDocument(urn);
-    else{
+    if (!errorCode){
+			console.log('Forge Viewer has successfully started.');
+			this.setState({enable:true});
+			this.reviewDocuments();
+		} else{
       console.error('Error starting Forge Viewer - code:', errorCode);
       this.handleViewerError(errorCode);
     }
   }
 
+	handleLoadDocumentSuccess(doc) {
+		console.log("Forge viewer has successfully loaded document:", doc);
+
+		let views = Autodesk.Viewing.Document.getSubItemsWithProperties(
+			doc.getRootItem(), {'type': 'geometry'}, true
+		);
+
+		//augment viewables with the doc they came from
+		views.forEach(viewable => {
+			viewable.doc = doc;
+		})
+
+		//raise an event so caller can select a viewable to display
+		if(this.props.onDocumentLoad)
+			this.props.onDocumentLoad(doc, views);
+	}
+
+	handleLoadDocumentError(errorCode){
+		this.setState({error:true});
+
+		console.error('Error loading Forge document - errorCode:' + errorCode);
+		if(this.props.onDocumentError)
+			this.props.onDocumentError(errorCode);
+	}
+
+	clearErrors(){
+	  this.setState({error:false});
+	}
+
+	clearViews(){
+		console.log('clearing all views.');
+		this.views = {};
+		if(this.viewer){
+			//restart viewer, for lack of ability to unload models
+			this.viewer.tearDown();
+			this.viewer.start();
+		}
+	}
+
+	reviewDocuments(){
+		if(this.viewer){
+			this.clearErrors();
+			console.log('reviewing documents...');
+			//let keys = Object.keys(this.docs);
+			this.setState({empty:(this.docs.length == 0)});
+			this.docs.forEach(urn => {
+				this.loadDocument(urn);
+			});
+		}
+	}
+
   loadDocument(urn){
+		console.log('Forge Viewer is loading document:', urn);
+
     let documentId = `urn:${urn}`;
     let successHandler = this.handleLoadDocumentSuccess.bind(this);
     let errorHandler = this.handleLoadDocumentError.bind(this);
 
-    console.log('Forge Viewer is loading document:', documentId);
     Autodesk.Viewing.Document.load(
       documentId, successHandler, errorHandler
     );
   }
 
-  setCurrentDocument(urn){
-    console.log("Setting the current viewer document to: ", urn);
+	loadView(view){
+		console.log('loading view:', view.viewableID);
+		this.views[view.viewableID] = view;
 
-    //make sure all previous errors are cleared before loading begins
-    this.clearErrors();
+		let svfUrl = view.doc.getViewablePath(view);
+		let successHandler = this.handleLoadModelSuccess.bind(this);
+		let errorHandler = this.handleLoadModelError.bind(this);
+		let modelOptions = {
+			sharedPropertyDbPath: view.doc.getPropertyDbPath()
+		};
 
-    if (!this.viewer) {
-      console.log('Initializing Forge Viewer...');
+		//load the specified model
+		this.viewer.loadModel(
+			svfUrl, modelOptions, successHandler, errorHandler
+		);
+	}
 
-      let options = {
-        env: 'AutodeskProduction',
-        getAccessToken: this.props.onTokenRequest
-      };
+	isArrayDifferent(current, next){
+		if(current == null && next == null)
+			return false;
+		else if (current == null || next == null)
+			return true;
+		else if(current.length != next.length)
+			return true;
 
-      Autodesk.Viewing.Initializer(
-        options, this.handleViewerInit.bind(this,urn));
+		for(var i = 0; i < current.length; i++)
+			if(current[i] != next[i])
+				return true;
+		return false;
+	}
+
+	shouldComponentUpdateURN(nextProps, nextState){
+		//console.log('props urn:', this.props.urn, ' next props urn:', nextProps.urn)
+		//new urn is null, empty or empty array
+    if(!nextProps.urn || nextProps.urn === '' || typeof nextProps.urn === 'undefined' ||
+			(Array.isArray(nextProps.urn) && nextProps.urn.length == 0)){
+      //clear out views if any document was previously loaded
+			if(this.docs.length > 0){
+				this.setDocuments([]);
+			}
+    } else if(Array.isArray(nextProps.urn)){
+			//always have to check array because equivalence is per element
+			if(this.isArrayDifferent(this.props.urn, nextProps.urn)){
+				this.setDocuments(nextProps.urn);
+			}
+		} else if(nextProps.urn != this.props.urn){
+			this.setDocuments([nextProps.urn]);
+		}
+	}
+
+	shouldComponentUpdateView(nextProps, nextState){
+		//the view property is empty, undefined, or empty array
+		if(!nextProps.view || typeof nextProps.view === 'undefined' ||
+			(Array.isArray(nextProps.view) && nextProps.view.length == 0)){
+			if(Object.keys(this.views).length > 0)
+				this.clearViews();
+		} else if(Array.isArray(nextProps.view)){
+			if(this.isArrayDifferent(this.props.view, nextProps.view)){
+				this.setViews(nextProps.view);
+			}
+		} else if(this.props.view != nextProps.view){
+			this.setViews([nextProps.view]);
     }
-    else {
-      //already initialized. skip ahead to loading the doc
-      this.loadDocument(urn);
-    }
-  }
+	}
 
-  componentDidUpdate(prevProps, prevState){
-    //viewer must be both flagged for reload, and enabled to load a document
-    if(!this.props.urn || this.props.urn === ''){
-      //clear out the previously loaded document
-      if(prevState.doc)
-        this.clearDocument();
-    }
-    else if(this.props.urn != prevProps.urn){
-      //document property has changed to a non-empty value
-      this.setCurrentDocument(this.props.urn);
-    }
+	shouldComponentUpdate(nextProps, nextState){
+		this.shouldComponentUpdateURN(nextProps, nextState);
+		this.shouldComponentUpdateView(nextProps, nextState);
+		return true;
+	}
 
-    if(this.props.view != prevProps.view){
-      if(!this.state.doc){
-        console.error('Forge Viewer cannot display a view without loading a doc.')
-      }
-      else{
-        let view = this.props.view;
-        let svfUrl = this.state.doc.getViewablePath(view);
-        let successHandler = this.handleLoadModelSuccess.bind(this);
-        let errorHandler = this.handleLoadModelError.bind(this);
-        let modelOptions = {
-          sharedPropertyDbPath: this.state.doc.getPropertyDbPath()
-        };
+	setDocuments(list){
+		this.docs = list;
+		this.clearViews();
+		this.reviewDocuments(); //defer loading until viewer ready
+	}
 
-        //re-initialize viewer, otherwise it will combine models
-        this.viewer.tearDown();
-        this.viewer.start();
+	setViews(list){
+		//check to see if views were added or removed from existing list
+		let existing = Object.assign({},this.views);
+		let incremental = [];
+		list.forEach(view => {
+			if(existing.hasOwnProperty(view.viewableID))
+				//the view was previously in the list
+				delete existing[view.viewableID];
+			else {
+				//the view is newly added to the list
+				incremental.push(view);
+			}
+		});
 
-        //load the specified model
-        this.viewer.loadModel(
-          svfUrl, modelOptions, successHandler, errorHandler
-        );
-      }
-    }
-  }
+		//anything left in old's keys should be unloaded
+		let keys = Object.keys(existing);
+		if(keys.length > 0){
+			//views were removed, so restart viewer for lack of 'unload'
+			this.viewer.tearDown();
+			this.viewer.start();
+			list.forEach(view => {
+				this.loadView(view);
+			});
+		} else{
+			//load views incrementally rather than a complete teardown
+			incremental.forEach(view => {
+				this.loadView(view);
+			});
+		}
+	}
 
   render() {
     const version = (this.props.version) ? this.props.version: "5.0";
@@ -214,7 +254,7 @@ class ForgeViewer extends React.Component {
           onError={this.handleViewerError.bind(this)}
         />
 
-        {!this.state.doc ?
+        {this.state.empty ?
           <div className="scrim">
             <div className="message">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2.32 6.16 12 11 21.68 6.16"></polyline><line x1="12" y1="22.76" x2="12" y2="11"></line></svg>
