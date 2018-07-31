@@ -7,8 +7,6 @@ The `ForgeViewer` component in this package makes it easy to include and interac
 
 Note that this component is not authored by Autodesk.
 
-We've optimized for what seems to be the most common case -- one viewer per page, and a single document per viewer. It also assumes you will take care of generating a valid oAuth token to access Forge, and generate a URN for you document (via Model Derivative API).
-
 ## Supported React Versions
 This package requires React 16.4.1 and higher.
 
@@ -88,7 +86,7 @@ class App extends Component {
     return (
       <div className="App">
         <ForgeViewer
-          version="5.0"
+          version="6.0"
           urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
           view={this.state.view}
           onViewerError={this.handleViewerError.bind(this)}
@@ -105,6 +103,18 @@ class App extends Component {
 
 export default App;
 ```
+
+## Component Parameters
+
+* _urn_: (Required) A string or array of string values for the URN(s) of the translated models you wish to load
+* _view_: (Required) An object or array of view objects to display in the viewer
+* _onTokenRequest_: (Required) Callback function triggered when the viewer requests a token to access data stored on Forge. Must be a public / viewable scoped token.
+* _version_: The version of the viewer you want to load. Latest tested is 6.0.
+* _onViewerError_: Callback function triggered when the viewer encounters an error
+* _onDocumentLoad_: Callback function triggered when the viewer successfully loads one of the documents (urns) provided
+* _onDocumentError_: Callback function triggered when the viewer fails to load one of the documents(urns) provided
+* _onModelLoad_: Callback function triggered when the viewer successfully loads one of the models(views) provided
+* _onModelError_: Callback function triggered when the viewer fails to load one of the models(views) provided
 
 ## Styling the Component
 The ForgeViewer component will need to be assigned width and height properties, either directly, or via layout manager (like flex layout).
