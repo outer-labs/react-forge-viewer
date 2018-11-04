@@ -23,6 +23,7 @@
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-load-script": "0.0.6",
+    "react-measure": "^2.1.2",
     "webpack": "^2.6.1"
   },
   "scripts": {

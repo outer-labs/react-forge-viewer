@@ -145,7 +145,7 @@ Install dependencies, and establish a link to our package in npm
 ```bash
 npm i
 npm run build
-npm link
+sudo npm link
 ```
 
 Install and use `create-react-app` to set up a boilerplate app for testing the component (targeting node version 6.10)
@@ -161,7 +161,7 @@ echo 'v6.10' > .nvmrc
 
 Use the component link with the test app we just created
 ```bash
-npm link react-forge-viewer
+sudo npm link react-forge-viewer
 ```
 
 Add the component to your `App.js` then run `npm start` (for both `my-test-app` and `react-forge-viewer` in separate terminal windows/tabs).

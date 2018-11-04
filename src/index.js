@@ -1,5 +1,6 @@
 import React from 'react';
 import Script from 'react-load-script'
+import Measure from 'react-measure'
 import './index.css';
 
 class ForgeViewer extends React.Component {
@@ -17,8 +18,18 @@ class ForgeViewer extends React.Component {
 			this.docs.push(props.urn);
   }
 
+  componentWillUnmount(){
+    console.log('React Forge Viewer unmounting...')
+    if(this.viewer){
+      this.viewer.tearDown()
+      this.viewer.finish()
+      this.viewer = null
+      console.log('React Forge Viewer destroyed.')
+    }
+  }
+
   handleLoadModelSuccess(model){
-    console.log('Model successfully loaded from Forge.', model);
+    console.log('Model successfully loaded by Forge Viewer.', model);
 
     if(this.props.onModelLoad)
       this.props.onModelLoad(this.viewer, model);
@@ -243,46 +254,50 @@ class ForgeViewer extends React.Component {
 	}
 
   render() {
-    const version = (this.props.version) ? this.props.version: "5.0";
+    const version = (this.props.version) ? this.props.version: "6.0";
 
     return (
-      <div className="ForgeViewer">
-        <div ref={this.viewerDiv}></div>
-        <link rel="stylesheet" type="text/css" href={`https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v${version}`}/>
-        <Script url={`https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v${version}`}
-          onLoad={this.handleScriptLoad.bind(this)}
-          onError={this.handleViewerError.bind(this)}
-        />
+      <Measure bounds onResize={(rect) => {if(this.viewer) this.viewer.resize()}}>
+        {({ measureRef }) =>
+        <div ref={measureRef} className="ForgeViewer">
+          <div ref={this.viewerDiv} onResize></div>
+          <link rel="stylesheet" type="text/css" href={`https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v${version}`}/>
+          <Script url={`https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v${version}`}
+            onLoad={this.handleScriptLoad.bind(this)}
+            onError={this.handleViewerError.bind(this)}
+          />
 
-        {this.state.empty ?
-          <div className="scrim">
-            <div className="message">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2.32 6.16 12 11 21.68 6.16"></polyline><line x1="12" y1="22.76" x2="12" y2="11"></line></svg>
+          {this.state.empty ?
+            <div className="scrim">
+              <div className="message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.89 1.45l8 4A2 2 0 0 1 22 7.24v9.53a2 2 0 0 1-1.11 1.79l-8 4a2 2 0 0 1-1.79 0l-8-4a2 2 0 0 1-1.1-1.8V7.24a2 2 0 0 1 1.11-1.79l8-4a2 2 0 0 1 1.78 0z"></path><polyline points="2.32 6.16 12 11 21.68 6.16"></polyline><line x1="12" y1="22.76" x2="12" y2="11"></line></svg>
+              </div>
             </div>
-          </div>
-          : null
-        }
+            : null
+          }
 
-        {this.state.error ?
-          <div className="scrim">
-            <div className="message">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12" y2="16"></line></svg>
-              <div>Viewer Error</div>
+          {this.state.error ?
+            <div className="scrim">
+              <div className="message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12" y2="16"></line></svg>
+                <div>Viewer Error</div>
+              </div>
             </div>
-          </div>
-          : null
-        }
+            : null
+          }
 
-        {!this.state.enable ?
-          <div className="scrim">
-            <div className="message">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              <div>Starting Viewer...</div>
+          {!this.state.enable ?
+            <div className="scrim">
+              <div className="message">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                <div>Starting Viewer...</div>
+              </div>
             </div>
-          </div>
-          : null
+            : null
+          }
+        </div>
         }
-      </div>
+      </Measure>
     );
   }
 }
