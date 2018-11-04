@@ -12,6 +12,7 @@ class ForgeViewer extends React.Component {
     this.state = {enable:false, error:false, empty:true};
     this.viewerDiv = React.createRef();
     this.viewer = null;
+    this.resizeHandling = null;
 
 		//if urn already given when component is created
 		if(typeof props.urn != 'undefined' && props.urn != '')
@@ -253,14 +254,25 @@ class ForgeViewer extends React.Component {
 		}
 	}
 
+  handleResize(rect){
+    //cancel any previous handlers that were dispatched
+    if(this.resizeHandling)
+      clearTimeout(this.resizeHandling)
+
+    //defer handling until resizing stops
+    this.resizeHandling = setTimeout(() => {
+      if(this.viewer) this.viewer.resize()
+    }, 100)
+  }
+
   render() {
     const version = (this.props.version) ? this.props.version: "6.0";
 
     return (
-      <Measure bounds onResize={(rect) => {if(this.viewer) this.viewer.resize()}}>
+      <Measure bounds onResize={this.handleResize.bind(this)}>
         {({ measureRef }) =>
         <div ref={measureRef} className="ForgeViewer">
-          <div ref={this.viewerDiv} onResize></div>
+          <div ref={this.viewerDiv}></div>
           <link rel="stylesheet" type="text/css" href={`https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v${version}`}/>
           <Script url={`https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v${version}`}
             onLoad={this.handleScriptLoad.bind(this)}

@@ -767,6 +767,7 @@ var ForgeViewer = function (_React$Component) {
 		_this.state = { enable: false, error: false, empty: true };
 		_this.viewerDiv = _react2.default.createRef();
 		_this.viewer = null;
+		_this.resizeHandling = null;
 
 		//if urn already given when component is created
 		if (typeof props.urn != 'undefined' && props.urn != '') _this.docs.push(props.urn);
@@ -1010,29 +1011,40 @@ var ForgeViewer = function (_React$Component) {
 			}
 		}
 	}, {
-		key: 'render',
-		value: function render() {
+		key: 'handleResize',
+		value: function handleResize(rect) {
 			var _this4 = this;
 
-			var version = this.props.version ? this.props.version : "5.0";
+			//cancel any previous handlers that were dispatched
+			if (this.resizeHandling) clearTimeout(this.resizeHandling);
+
+			//defer handling until resizing stops
+			this.resizeHandling = setTimeout(function () {
+				if (_this4.viewer) _this4.viewer.resize();
+			}, 100);
+		}
+	}, {
+		key: 'render',
+		value: function render() {
+			var _this5 = this;
+
+			var version = this.props.version ? this.props.version : "6.0";
 
 			return _react2.default.createElement(
 				_reactMeasure2.default,
-				{ bounds: true, onResize: function onResize(rect) {
-						if (_this4.viewer) _this4.viewer.resize();
-					} },
+				{ bounds: true, onResize: this.handleResize.bind(this) },
 				function (_ref) {
 					var measureRef = _ref.measureRef;
 					return _react2.default.createElement(
 						'div',
 						{ ref: measureRef, className: 'ForgeViewer' },
-						_react2.default.createElement('div', { ref: _this4.viewerDiv, onResize: true }),
+						_react2.default.createElement('div', { ref: _this5.viewerDiv }),
 						_react2.default.createElement('link', { rel: 'stylesheet', type: 'text/css', href: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/style.min.css?v=v' + version }),
 						_react2.default.createElement(_reactLoadScript2.default, { url: 'https://developer.api.autodesk.com/modelderivative/v2/viewers/viewer3D.min.js?v=v' + version,
-							onLoad: _this4.handleScriptLoad.bind(_this4),
-							onError: _this4.handleViewerError.bind(_this4)
+							onLoad: _this5.handleScriptLoad.bind(_this5),
+							onError: _this5.handleViewerError.bind(_this5)
 						}),
-						_this4.state.empty ? _react2.default.createElement(
+						_this5.state.empty ? _react2.default.createElement(
 							'div',
 							{ className: 'scrim' },
 							_react2.default.createElement(
@@ -1047,7 +1059,7 @@ var ForgeViewer = function (_React$Component) {
 								)
 							)
 						) : null,
-						_this4.state.error ? _react2.default.createElement(
+						_this5.state.error ? _react2.default.createElement(
 							'div',
 							{ className: 'scrim' },
 							_react2.default.createElement(
@@ -1067,7 +1079,7 @@ var ForgeViewer = function (_React$Component) {
 								)
 							)
 						) : null,
-						!_this4.state.enable ? _react2.default.createElement(
+						!_this5.state.enable ? _react2.default.createElement(
 							'div',
 							{ className: 'scrim' },
 							_react2.default.createElement(
