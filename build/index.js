@@ -828,10 +828,8 @@ var ForgeViewer = function (_React$Component) {
 
 			// Create Viewer instance so we can load models.
 			if (this.props.headless) {
-				console.log("Headless mode");
 				this.viewer = new Autodesk.Viewing.Viewer3D(container);
 			} else {
-				console.log("Non-Headless mode");
 				this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
 			}
 
