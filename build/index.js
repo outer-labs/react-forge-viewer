@@ -827,7 +827,13 @@ var ForgeViewer = function (_React$Component) {
 			var container = this.viewerDiv.current;
 
 			// Create Viewer instance so we can load models.
-			this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+			if (this.props.headless) {
+				console.log("Headless mode");
+				this.viewer = new Autodesk.Viewing.Viewer3D(container);
+			} else {
+				console.log("Non-Headless mode");
+				this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+			}
 
 			console.log('Starting the Forge Viewer...');
 			var errorCode = this.viewer.start();
@@ -1044,7 +1050,7 @@ var ForgeViewer = function (_React$Component) {
 							onLoad: _this5.handleScriptLoad.bind(_this5),
 							onError: _this5.handleViewerError.bind(_this5)
 						}),
-						_this5.state.empty ? _react2.default.createElement(
+						_this5.state.empty && _react2.default.createElement(
 							'div',
 							{ className: 'scrim' },
 							_react2.default.createElement(
@@ -1058,8 +1064,8 @@ var ForgeViewer = function (_React$Component) {
 									_react2.default.createElement('line', { x1: '12', y1: '22.76', x2: '12', y2: '11' })
 								)
 							)
-						) : null,
-						_this5.state.error ? _react2.default.createElement(
+						),
+						_this5.state.error && _react2.default.createElement(
 							'div',
 							{ className: 'scrim' },
 							_react2.default.createElement(
@@ -1078,8 +1084,8 @@ var ForgeViewer = function (_React$Component) {
 									'Viewer Error'
 								)
 							)
-						) : null,
-						!_this5.state.enable ? _react2.default.createElement(
+						),
+						!_this5.state.enable && _react2.default.createElement(
 							'div',
 							{ className: 'scrim' },
 							_react2.default.createElement(
@@ -1096,7 +1102,7 @@ var ForgeViewer = function (_React$Component) {
 									'Starting Viewer...'
 								)
 							)
-						) : null
+						)
 					);
 				}
 			);
@@ -1117,7 +1123,7 @@ exports = module.exports = __webpack_require__(10)(false);
 
 
 // module
-exports.push([module.i, "\n.ForgeViewer{\n\n}\n\n.ForgeViewer .viewer{\n  position:relative;\n  width:100%;\n  height:100%;\n}\n\n.ForgeViewer .scrim{\n  position:relative;\n  width: 100%;\n  height:100%;\n  z-index: 1000;\n  background-color:#ededed;\n  color: #95a5a6;\n  display:flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.ForgeViewer .scrim .message{\n  display:flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.ForgeViewer .scrim .message svg{\n  margin-bottom:10px;\n  width:50px;\n  height:50px;\n}\n", ""]);
+exports.push([module.i, "\n.ForgeViewer{\n  width:100%;\n  height:100%;\n}\n\n.ForgeViewer .viewer{\n  position:relative;\n  width:100%;\n  height:100%;\n}\n\n.ForgeViewer .scrim{\n  position:relative;\n  width: 100%;\n  height:100%;\n  z-index: 1000;\n  background-color:#ededed;\n  color: #95a5a6;\n  display:flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.ForgeViewer .scrim .message{\n  display:flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.ForgeViewer .scrim .message svg{\n  margin-bottom:10px;\n  width:50px;\n  height:50px;\n}\n", ""]);
 
 // exports
 
