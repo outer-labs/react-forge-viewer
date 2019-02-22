@@ -109,6 +109,10 @@ export default App;
 * _urn_: (Required) A string or array of string values for the URN(s) of the translated models you wish to load
 * _view_: (Required) An object or array of view objects to display in the viewer
 * _headless_: A boolean to display in the viewer in headless mode or not (defaults `false`)
+* _proxy_: A string that is the base url to proxy our requests through a
+  proxy. This is useful when you don't want to pass an access token to the
+client. For [more
+info...](https://forge.autodesk.com/blog/securing-your-forge-viewer-token-behind-proxy)
 * _onTokenRequest_: (Required) Callback function triggered when the viewer requests a token to access data stored on Forge. Must be a public / viewable scoped token.
 * _version_: The version of the viewer you want to load. Latest tested is 6.0.
 * _onViewerError_: Callback function triggered when the viewer encounters an error
