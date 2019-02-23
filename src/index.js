@@ -69,7 +69,11 @@ class ForgeViewer extends React.Component {
     let container = this.viewerDiv.current;
 
     // Create Viewer instance so we can load models.
-    this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+    if (this.props.headless) {
+      this.viewer = new Autodesk.Viewing.Viewer3D(container);
+    } else {
+      this.viewer = new Autodesk.Viewing.Private.GuiViewer3D(container);
+    }
 
     console.log('Starting the Forge Viewer...');
     var errorCode = this.viewer.start();
