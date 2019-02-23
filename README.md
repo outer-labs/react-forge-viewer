@@ -89,6 +89,7 @@ class App extends Component {
           version="6.0"
           urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
           view={this.state.view}
+          headless={false}
           onViewerError={this.handleViewerError.bind(this)}
           onTokenRequest={this.handleTokenRequested.bind(this)}
           onDocumentLoad={this.handleDocumentLoaded.bind(this)}
