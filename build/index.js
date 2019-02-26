@@ -824,6 +824,10 @@ var ForgeViewer = function (_React$Component) {
 		value: function handleViewerInit() {
 			console.log('Forge Viewer has finished initializing.');
 
+			if (this.props.proxy) {
+				Autodesk.Viewing.endpoint.setEndpointAndApi(this.props.proxy, 'derivativeV2');
+			}
+
 			var container = this.viewerDiv.current;
 
 			// Create Viewer instance so we can load models.
