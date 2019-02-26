@@ -1,6 +1,6 @@
 {
   "name": "react-forge-viewer",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A component wrapper to quickly add the Forge model viewer in your React apps.",
   "main": "build/index.js",
   "license": "MIT",
