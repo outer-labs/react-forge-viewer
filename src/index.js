@@ -94,8 +94,8 @@ class ForgeViewer extends React.Component {
 	handleLoadDocumentSuccess(doc) {
 		console.log("Forge viewer has successfully loaded document:", doc);
 
-		let views = Autodesk.Viewing.Document.getSubItemsWithProperties(
-			doc.getRootItem(), {'type': 'geometry'}, true
+		let views = doc.getRoot().search(
+			{'type': 'geometry'}, true
 		);
 
 		//augment viewables with the doc they came from
@@ -155,14 +155,14 @@ class ForgeViewer extends React.Component {
   }
 
 	loadView(view){
-		console.log('loading view:', view.viewableID);
+		console.log('loading view:', view.guid);
 		this.views[view.viewableID] = view;
 
 		let svfUrl = view.doc.getViewablePath(view);
 		let successHandler = this.handleLoadModelSuccess.bind(this);
 		let errorHandler = this.handleLoadModelError.bind(this);
 		let modelOptions = {
-			sharedPropertyDbPath: view.doc.getPropertyDbPath()
+			sharedPropertyDbPath: view.doc.getFullPath()
 		};
 
 		//load the specified model
@@ -274,7 +274,7 @@ class ForgeViewer extends React.Component {
   }
 
   render() {
-    const version = (this.props.version) ? this.props.version: "6.0";
+    const version = (this.props.version) ? this.props.version: "7.19";
 
     return (
       <Measure bounds onResize={this.handleResize.bind(this)}>
