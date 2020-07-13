@@ -23,8 +23,7 @@
     "react": "^16.4.1",
     "react-dom": "^16.4.1",
     "react-load-script": "0.0.6",
-    "react-measure": "^2.1.2",
-    "webpack": "^2.6.1"
+    "react-measure": "^2.1.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -43,6 +42,7 @@
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-env": "^1.5.1",
     "css-loader": "^0.28.11",
-    "style-loader": "^0.21.0"
+    "style-loader": "^0.21.0",
+    "webpack": "^2.6.1"
   }
 }
