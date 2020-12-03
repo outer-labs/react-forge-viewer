@@ -8,7 +8,7 @@ class ForgeViewer extends React.Component {
     super(props);
     this.docs = [];
     this.views = {};
-    this.state = { enable: false, error: false, empty: true };
+    this.state = { enable: false, error: false, empty: true, loaded: false };
     this.viewerDiv = React.createRef();
     this.viewer = null;
     this.resizeHandling = null;
@@ -57,7 +57,10 @@ class ForgeViewer extends React.Component {
       api: region !== "us" ? "derivativeV2_EU" : "derivativeV2",
     };
 
-    Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this));
+    if (!this.state.loaded) {
+      Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this));
+      this.setState({ loaded: true });
+    }
   }
 
   handleViewerInit() {

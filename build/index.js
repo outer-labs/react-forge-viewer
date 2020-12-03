@@ -764,7 +764,7 @@ var ForgeViewer = function (_React$Component) {
 
     _this.docs = [];
     _this.views = {};
-    _this.state = { enable: false, error: false, empty: true };
+    _this.state = { enable: false, error: false, empty: true, loaded: false };
     _this.viewerDiv = _react2.default.createRef();
     _this.viewer = null;
     _this.resizeHandling = null;
@@ -819,7 +819,10 @@ var ForgeViewer = function (_React$Component) {
         api: region !== "us" ? "derivativeV2_EU" : "derivativeV2"
       };
 
-      Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this));
+      if (!this.state.loaded) {
+        Autodesk.Viewing.Initializer(options, this.handleViewerInit.bind(this));
+        this.setState({ loaded: true });
+      }
     }
   }, {
     key: "handleViewerInit",
