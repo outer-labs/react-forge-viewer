@@ -30,11 +30,11 @@ function App() {
   }
 
   async function getForgeToken() {
-		return {
-		  access_token:<<INSERT_YOUR_FORGE_ACCESS_TOKEN>>,
-		  expires_in: <<INSERT_TOKEN_EXPIRATION>>,
-		  token_type: "Bearer"
-		};
+    return {
+      access_token:<<INSERT_YOUR_FORGE_ACCESS_TOKEN>>,
+      expires_in: <<INSERT_TOKEN_EXPIRATION>>,
+      token_type: "Bearer"
+    };
   }
 
   function handleViewerError(error) { console.log('Error loading viewer.'); }
