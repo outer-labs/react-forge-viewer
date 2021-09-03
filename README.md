@@ -22,51 +22,51 @@ import './App.css';
 
 function App() {
 
-    const [view, setView] = useState(false);
+  const [view, setView] = useState(false);
 
-    function handleDocumentLoaded(doc, viewables) {
-        if (viewables.length === 0) { console.error('Document contains no viewables.'); }
-        else { setView(viewables[0]); }
-    }
+  function handleDocumentLoaded(doc, viewables) {
+    if (viewables.length === 0) { console.error('Document contains no viewables.'); }
+    else { setView(viewables[0]); }
+  }
 
-    async function getForgeToken() {
+  async function getForgeToken() {
 		return {
 		  access_token:<<INSERT_YOUR_FORGE_ACCESS_TOKEN>>,
 		  expires_in: <<INSERT_TOKEN_EXPIRATION>>,
 		  token_type: "Bearer"
 		};
+  }
+
+  function handleViewerError(error) { console.log('Error loading viewer.'); }
+  function handleDocumentError(viewer, error) { console.log('Error loading a document'); }
+  function handleModelLoaded(viewer, model) { console.log('Loaded model:', model); }
+  function handleModelError(viewer, error) { console.log('Error loading the model.'); }
+
+  async function handleTokenRequested(onAccessToken) {
+    if (onAccessToken) {
+      let token = await getForgeToken();
+      if (token) onAccessToken(token.access_token, token.expires_in);
     }
+  }
 
-    function handleViewerError(error) { console.log('Error loading viewer.'); }
-    function handleDocumentError(viewer, error) { console.log('Error loading a document'); }
-    function handleModelLoaded(viewer, model) { console.log('Loaded model:', model); }
-    function handleModelError(viewer, error) { console.log('Error loading the model.'); }
+  return (
 
-    async function handleTokenRequested(onAccessToken) {
-        if (onAccessToken) {
-            let token = await getForgeToken();
-            if (token) onAccessToken(token.access_token, token.expires_in);
-        }
-    }
+    <>
+      <ForgeViewer
+        version="7.0"
+        urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
+        view={view}
+        headless={false}
+        onViewerError={handleViewerError.bind(this)}
+        onTokenRequest={handleTokenRequested.bind(this)}
+        onDocumentLoad={handleDocumentLoaded.bind(this)}
+        onDocumentError={handleDocumentError.bind(this)}
+        onModelLoad={handleModelLoaded.bind(this)}
+        onModelError={handleModelError.bind(this)}
+      />
+    </>
 
-    return (
-
-		<>
-			<ForgeViewer
-				version="7.0"
-				urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
-				view={view}
-				headless={false}
-				onViewerError={handleViewerError.bind(this)}
-				onTokenRequest={handleTokenRequested.bind(this)}
-				onDocumentLoad={handleDocumentLoaded.bind(this)}
-				onDocumentError={handleDocumentError.bind(this)}
-				onModelLoad={handleModelLoaded.bind(this)}
-				onModelError={handleModelError.bind(this)}
-			/>
-		</>
-
-    );
+  );
 
 }
 
