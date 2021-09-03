@@ -14,7 +14,66 @@ This package requires React 16.4.1 and higher.
 
 `npm i react-forge-viewer --save`
 
-## Example
+## Function Component Example
+```jsx
+import React, { useState } from 'react';
+import ForgeViewer from 'react-forge-viewer';
+import './App.css';
+
+function App() {
+
+  const [view, setView] = useState(false);
+
+  function handleDocumentLoaded(doc, viewables) {
+    if (viewables.length === 0) { console.error('Document contains no viewables.'); }
+    else { setView(viewables[0]); }
+  }
+
+  async function getForgeToken() {
+    return {
+      access_token:<<INSERT_YOUR_FORGE_ACCESS_TOKEN>>,
+      expires_in: <<INSERT_TOKEN_EXPIRATION>>,
+      token_type: "Bearer"
+    };
+  }
+
+  function handleViewerError(error) { console.log('Error loading viewer.'); }
+  function handleDocumentError(viewer, error) { console.log('Error loading a document'); }
+  function handleModelLoaded(viewer, model) { console.log('Loaded model:', model); }
+  function handleModelError(viewer, error) { console.log('Error loading the model.'); }
+
+  async function handleTokenRequested(onAccessToken) {
+    if (onAccessToken) {
+      let token = await getForgeToken();
+      if (token) onAccessToken(token.access_token, token.expires_in);
+    }
+  }
+
+  return (
+
+    <>
+      <ForgeViewer
+        version="7.0"
+        urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
+        view={view}
+        headless={false}
+        onViewerError={handleViewerError.bind(this)}
+        onTokenRequest={handleTokenRequested.bind(this)}
+        onDocumentLoad={handleDocumentLoaded.bind(this)}
+        onDocumentError={handleDocumentError.bind(this)}
+        onModelLoad={handleModelLoaded.bind(this)}
+        onModelError={handleModelError.bind(this)}
+      />
+    </>
+
+  );
+
+}
+
+export default App
+```
+
+## Class Component Example
 ```jsx
 import React, { Component } from 'react';
 import ForgeViewer from 'react-forge-viewer';
@@ -86,7 +145,7 @@ class App extends Component {
     return (
       <div className="App">
         <ForgeViewer
-          version="6.0"
+          version="7.0"
           urn=<<INSERT_YOUR_FORGE_DOCUMENT_URN>>
           view={this.state.view}
           headless={false}
